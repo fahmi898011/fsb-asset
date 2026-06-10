@@ -28,35 +28,36 @@
         /* --- SIDEBAR --- */
         .sidebar {
             width: var(--sidebar-width);
-            background: #0f172a;
+            background: #0f172a; /* Slate 900 */
             position: fixed; top: 0; left: 0; bottom: 0;
             z-index: 50;
             transition: all 0.3s;
+            overflow-y: auto; /* Agar bisa discroll jika menu banyak */
         }
         .sidebar-brand {
             height: 70px;
             display: flex;
             align-items: center;
-            padding: 0 2.5rem;
+            padding: 0 1.5rem; /* Sesuaikan padding */
             color: white;
             font-weight: 700;
             font-size: 1.2rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .nav-link {
+        .sidebar .nav-link {
             color: #94a3b8;
             padding: 0.8rem 1.5rem;
             font-weight: 500;
             display: flex; align-items: center;
             transition: 0.2s;
         }
-        .nav-link:hover, .nav-link.active {
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
             color: white;
             background: rgba(255,255,255,0.05);
             border-right: 3px solid var(--primary);
         }
-        .nav-link i { width: 24px; text-align: center; margin-right: 10px; }
-        .nav-label {
+        .sidebar .nav-link i { width: 24px; text-align: center; margin-right: 10px; }
+        .sidebar .nav-label {
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -65,17 +66,49 @@
             font-weight: 700;
         }
 
+        /* Sidebar Overlay untuk Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 45;
+            display: none; /* Hidden by default */
+        }
+        body.sidebar-toggled .sidebar-overlay {
+            display: block; /* Show when sidebar is toggled */
+        }
+
         /* --- MAIN CONTENT --- */
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
             display: flex; flex-direction: column;
+            transition: all 0.3s;
         }
         .top-navbar {
             background: white;
             height: 70px;
             padding: 0 2rem;
             display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            position: sticky; top: 0; z-index: 40;
+        }
+
+        /* Hamburger menu button */
+        .sidebar-toggle {
+            display: none; /* Hidden by default, only show on mobile */
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 0;
+            margin-right: 1rem;
+        }
+        .top-navbar .user-info {
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             position: sticky; top: 0; z-index: 40;
         }
@@ -139,10 +172,36 @@
         box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
     }
     </style>
-</head>
-<body>
 
-    <aside class="sidebar">
+    <style>
+        /* Mobile Responsiveness */
+        @media (max-width: 991.98px) { /* Bootstrap's 'lg' breakpoint */
+            .sidebar {
+                left: calc(-1 * var(--sidebar-width)); /* Hide sidebar off-screen */
+            }
+            .main-content {
+                margin-left: 0; /* Main content takes full width */
+            }
+            .sidebar-toggle {
+                display: block; /* Show hamburger menu */
+            }
+            body.sidebar-toggled .sidebar {
+                left: 0; /* Show sidebar */
+            }
+            body.sidebar-toggled .main-content {
+                /* Optional: push content to the right, or keep it full width and let overlay handle it */
+                /* transform: translateX(var(--sidebar-width)); */
+            }
+            .top-navbar {
+                padding: 0 1rem; /* Adjust padding for smaller screens */
+            }
+            .top-navbar .d-none.d-md-block { display: none !important; } /* Hide user info on small screens */
+        }
+    </style>
+</head>
+<body class="">
+
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="fas fa-layer-group me-2 text-primary"></i> FSB
         </div>
@@ -188,12 +247,15 @@
         </nav>
     </aside>
 
-    <div class="main-content">
+    <div class="main-content" id="main-content">
         <header class="top-navbar">
             <div class="d-flex align-items-center">
+                <button class="sidebar-toggle me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <span class="text-muted small">Sistem Informasi Aset Terpadu</span>
             </div>
-            <div class="dropdown">
+            <div class="dropdown user-info">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" data-bs-toggle="dropdown">
                     <div class="text-end me-3 d-none d-md-block">
                         <div class="fw-bold small">{{ Auth::user()->name }}</div>
@@ -228,7 +290,25 @@
         </div>
     </div>
 
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const body = document.body;
+
+            sidebarToggle.addEventListener('click', function () {
+                body.classList.toggle('sidebar-toggled');
+            });
+
+            sidebarOverlay.addEventListener('click', function () {
+                body.classList.remove('sidebar-toggled');
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>
